@@ -2,7 +2,9 @@ package com.baidu.crazyorange.dagger2test;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.TextView;
 
+import annotation.BindView;
 import annotation.ContentView;
 import container.InjectContainer;
 
@@ -11,6 +13,8 @@ import container.InjectContainer;
  */
 @ContentView(R.layout.activity_main)
 public class MainActivity extends AppCompatActivity {
+    @BindView(R.id.tv)
+    TextView mTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
