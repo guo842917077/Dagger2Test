@@ -2,6 +2,7 @@ package container;
 
 import android.os.Binder;
 import android.util.Log;
+import android.view.View;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -9,11 +10,50 @@ import java.lang.reflect.Method;
 
 import annotation.BindView;
 import annotation.ContentView;
+import annotation.OnClick;
 
 public class InjectContainer {
     public static void inject(Object container) {
         injectContentView(container);
         injectBindView(container);
+        injectEvent(container);
+    }
+
+    private static void injectEvent(final Object container) {
+        Class<?> mainActivity = container.getClass();
+        Method[] methods = mainActivity.getDeclaredMethods();
+        for (final Method method : methods) {
+            method.setAccessible(true);
+            final OnClick onClickAnnotation = method.getAnnotation(OnClick.class);
+            if (null == onClickAnnotation) {
+                continue;
+            }
+            int value = onClickAnnotation.value();
+            try {
+                Method findViewById = mainActivity.getMethod("findViewById", int.class);
+                Object view = findViewById.invoke(container, value);
+                View eventView = (View) view;
+                eventView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            // 当点击这个 View 的时候，执行使用了注解的方法
+                            method.invoke(container);
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private static void injectBindView(Object container) {
